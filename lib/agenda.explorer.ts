@@ -7,7 +7,7 @@ import { AgendaScheduleType } from './enums';
 
 @Injectable()
 export class AgendaExplorer implements OnModuleInit {
-  private readonly logger = new Logger('Agenda');
+  private readonly logger = new Logger('AgendaExplorer');
 
   constructor(
     private readonly moduleRef: ModuleRef,
@@ -43,7 +43,7 @@ export class AgendaExplorer implements OnModuleInit {
             );
             const name = this.metadataAcessor.getProcessorName(methodRef);
             const options = this.metadataAcessor.getProcessorOptions(methodRef);
-            this.logger.log(`Registering processor: ${name}`);
+            this.logger.log(`Registering processor "${name}"`);
             agendaService.define(
               name,
               !options ? wrappedFn : options,
@@ -53,7 +53,9 @@ export class AgendaExplorer implements OnModuleInit {
             if (!hasSchedule) return;
             const when = this.metadataAcessor.getScheduleWhen(methodRef);
             const type = this.metadataAcessor.getScheduleType(methodRef);
-            this.logger.log(`Scheduling ${name} ${type} ${when}`);
+            this.logger.log(
+              `Scheduling processor "${name}" of type "${type}" ${when}`,
+            );
             type === AgendaScheduleType.Every
               ? agendaService.every(when, name)
               : agendaService.schedule(when, name, {});

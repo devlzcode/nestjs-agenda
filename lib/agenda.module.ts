@@ -1,7 +1,7 @@
 import {
   DynamicModule,
+  Logger,
   Module,
-  OnApplicationBootstrap,
   OnApplicationShutdown,
   Provider,
 } from '@nestjs/common';
@@ -16,6 +16,8 @@ import {
 } from './interfaces';
 import { AGENDA_MODULE_OPTIONS } from './agenda.constants';
 
+const logger = new Logger('Agenda');
+
 @Module({
   imports: [DiscoveryModule],
   providers: [
@@ -24,15 +26,15 @@ import { AGENDA_MODULE_OPTIONS } from './agenda.constants';
       inject: [AGENDA_MODULE_OPTIONS],
       useFactory: async (options: AgendaModuleOptions) => {
         const agendaService = new AgendaService(options);
+        logger.log('Starting Agenda...');
+        await agendaService.start();
         return agendaService;
       },
     },
     AgendaMetadataAccessor,
   ],
 })
-export class AgendaModule
-  implements OnApplicationBootstrap, OnApplicationShutdown
-{
+export class AgendaModule implements OnApplicationShutdown {
   constructor(private readonly moduleRef: ModuleRef) {}
 
   static forRoot(options: AgendaModuleOptions): DynamicModule {
@@ -89,12 +91,8 @@ export class AgendaModule
     };
   }
 
-  async onApplicationBootstrap() {
-    const agendaService = this.moduleRef.get(AgendaService);
-    await agendaService.start();
-  }
-
   async onApplicationShutdown() {
+    logger.log('Stopping Agenda...');
     const agendaService = this.moduleRef.get(AgendaService);
     await agendaService.stop();
     await agendaService.close();

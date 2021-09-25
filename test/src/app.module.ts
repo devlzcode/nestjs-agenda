@@ -4,8 +4,10 @@ import { AppService } from './app.service';
 
 @Module({
   imports: [
-    AgendaModule.forRoot({
-      db: { address: 'mongodb://localhost/agenda' },
+    AgendaModule.forRootAsync({
+      useFactory: () => ({
+        db: { address: 'mongodb://localhost/agenda' },
+      }),
     }),
   ],
   providers: [AppService],
