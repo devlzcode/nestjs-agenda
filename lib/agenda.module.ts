@@ -1,5 +1,11 @@
-import { DynamicModule, Module, Provider } from '@nestjs/common';
-import { DiscoveryModule } from '@nestjs/core';
+import {
+  DynamicModule,
+  Module,
+  OnApplicationBootstrap,
+  OnApplicationShutdown,
+  Provider,
+} from '@nestjs/common';
+import { DiscoveryModule, ModuleRef } from '@nestjs/core';
 import { AgendaService } from './agenda.service';
 import { AgendaMetadataAccessor } from './agenda-metadata.acessor';
 import { AgendaExplorer } from './agenda.explorer';
@@ -18,14 +24,17 @@ import { AGENDA_MODULE_OPTIONS } from './agenda.constants';
       inject: [AGENDA_MODULE_OPTIONS],
       useFactory: async (options: AgendaModuleOptions) => {
         const agendaService = new AgendaService(options);
-        await agendaService.start();
         return agendaService;
       },
     },
     AgendaMetadataAccessor,
   ],
 })
-export class AgendaModule {
+export class AgendaModule
+  implements OnApplicationBootstrap, OnApplicationShutdown
+{
+  constructor(private readonly moduleRef: ModuleRef) {}
+
   static forRoot(options: AgendaModuleOptions): DynamicModule {
     return {
       global: true,
@@ -78,5 +87,16 @@ export class AgendaModule {
         await optionsFactory.createAgendaOptions(),
       inject: [options.useExisting || options.useClass],
     };
+  }
+
+  async onApplicationBootstrap() {
+    const agendaService = this.moduleRef.get(AgendaService);
+    await agendaService.start();
+  }
+
+  async onApplicationShutdown() {
+    const agendaService = this.moduleRef.get(AgendaService);
+    await agendaService.stop();
+    await agendaService.close();
   }
 }
