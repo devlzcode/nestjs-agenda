@@ -1,12 +1,16 @@
+import { Job } from 'agenda';
 import { Processor, Define, Schedule } from '../../lib';
-import { AppService } from './app.service';
 
 @Processor()
 export class AppProcessor {
-  constructor(private readonly appService: AppService) {}
   @Define('sayHelloWorld')
   @Schedule('in 10 seconds')
   public sayHelloWorld() {
-    this.appService.sayHelloWorld();
+    console.log('Hello world!');
+  }
+
+  @Define('repeatAfterMe')
+  public repeatAfterMe(job: Job) {
+    console.log(job.attrs.data);
   }
 }

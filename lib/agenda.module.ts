@@ -35,6 +35,7 @@ const logger = new Logger('Agenda');
     AgendaExplorer,
     AgendaMetadataAccessor,
   ],
+  exports: [AgendaService],
 })
 export class AgendaModule implements OnApplicationShutdown {
   constructor(private readonly moduleRef: ModuleRef) {}
@@ -43,7 +44,7 @@ export class AgendaModule implements OnApplicationShutdown {
     return {
       global: true,
       module: AgendaModule,
-      providers: [this.createAgendaProvider(options)],
+      providers: [{ provide: AGENDA_MODULE_OPTIONS, useValue: options }],
     };
   }
 
@@ -54,10 +55,6 @@ export class AgendaModule implements OnApplicationShutdown {
       imports: options.imports || [],
       providers: [...this.createAsyncProviders(options)],
     };
-  }
-
-  static createAgendaProvider(options: AgendaModuleOptions): Provider {
-    return { provide: AGENDA_MODULE_OPTIONS, useValue: options };
   }
 
   private static createAsyncProviders(

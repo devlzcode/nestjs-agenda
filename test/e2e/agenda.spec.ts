@@ -2,6 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { AgendaService } from '../../lib';
 import { AppModule } from '../src/app.module';
+import { AppService } from '../src/app.service';
 
 describe('Agenda', () => {
   let app: INestApplication;
@@ -17,9 +18,17 @@ describe('Agenda', () => {
     agendaService = app.get<AgendaService>(AgendaService);
   });
 
-  it(`should define sayHelloWorld`, (done) => {
+  it(`should define sayHelloWorld`, () => {
     expect(agendaService._definitions['sayHelloWorld']).toBeDefined();
-    setTimeout(done, 2500);
+  });
+
+  it(`should define repeatAfterMe`, () => {
+    expect(agendaService._definitions['repeatAfterMe']).toBeDefined();
+  });
+
+  it(`should run "repeatAfterMe" immediately`, async () => {
+    const appService = app.get<AppService>(AppService);
+    await appService.repeatAfterMe();
   });
 
   afterAll(async () => {
