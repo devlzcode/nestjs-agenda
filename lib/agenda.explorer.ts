@@ -24,53 +24,38 @@ export class AgendaExplorer implements OnModuleInit {
     const agendaService = this.moduleRef.get<AgendaService>(AgendaService);
     const providers: InstanceWrapper[] = this.discoveryService.getProviders();
     providers
-      .filter((wrapper) => wrapper.isDependencyTreeStatic())
+      .filter((wrapper) => this.metadataAcessor.isProcessor(wrapper.metatype))
       .forEach((wrapper) => {
         const { instance } = wrapper;
-        if (!instance || !Object.getPrototypeOf(instance)) {
+        if (!wrapper.isDependencyTreeStatic()) {
+          this.logger.warn(`${wrapper.name} is request scoped, skipping...`);
           return;
         }
+
         this.metadataScanner.scanFromPrototype(
           instance,
           Object.getPrototypeOf(instance),
           (key: string) => {
             const methodRef = instance[key];
-            const isProcessor = this.metadataAcessor.isProcessor(methodRef);
-            if (!isProcessor) return;
-            const wrappedFn = this.wrapFunctionInTryCatchBlocks(
-              methodRef,
-              instance,
-            );
-            const name = this.metadataAcessor.getProcessorName(methodRef);
-            const options = this.metadataAcessor.getProcessorOptions(methodRef);
+            const processor = (...args: unknown[]) =>
+              methodRef.call(instance, ...args);
+            const { name, options } =
+              this.metadataAcessor.getDefinitionOptions(methodRef);
             this.logger.log(`Registering processor "${name}"`);
-            agendaService.define(
-              name,
-              !options ? wrappedFn : options,
-              !options ? undefined : wrappedFn,
-            );
-            const hasSchedule = this.metadataAcessor.hasSchedule(methodRef);
-            if (!hasSchedule) return;
-            const when = this.metadataAcessor.getScheduleWhen(methodRef);
-            const type = this.metadataAcessor.getScheduleType(methodRef);
+            agendaService.define(name, options, processor);
+
+            const scheduleOptions =
+              this.metadataAcessor.getScheduleOptions(methodRef);
+            if (!scheduleOptions) return;
+            const { when, type } = scheduleOptions;
             this.logger.log(
               `Scheduling processor "${name}" of type "${type}" ${when}`,
             );
             type === AgendaScheduleType.Every
-              ? agendaService.every(when, name)
+              ? agendaService.every(<string>when, name)
               : agendaService.schedule(when, name, {});
           },
         );
       });
-  }
-
-  private wrapFunctionInTryCatchBlocks(methodRef: Function, instance: any) {
-    return async (...args: unknown[]) => {
-      try {
-        await methodRef.call(instance, ...args);
-      } catch (error) {
-        this.logger.error(error);
-      }
-    };
   }
 }

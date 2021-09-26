@@ -7,7 +7,7 @@ describe('Agenda', () => {
   let app: INestApplication;
   let agendaService: AgendaService;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const module = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -17,11 +17,12 @@ describe('Agenda', () => {
     agendaService = app.get<AgendaService>(AgendaService);
   });
 
-  it(`should define sayHelloWorld`, () => {
+  it(`should define sayHelloWorld`, (done) => {
     expect(agendaService._definitions['sayHelloWorld']).toBeDefined();
+    setTimeout(done, 2500);
   });
 
-  afterEach(async () => {
+  afterAll(async () => {
     await app.close();
   });
 });

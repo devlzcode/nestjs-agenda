@@ -28,9 +28,11 @@ const logger = new Logger('Agenda');
         const agendaService = new AgendaService(options);
         logger.log('Starting Agenda...');
         await agendaService.start();
+        logger.log('Agenda started');
         return agendaService;
       },
     },
+    AgendaExplorer,
     AgendaMetadataAccessor,
   ],
 })
@@ -41,7 +43,7 @@ export class AgendaModule implements OnApplicationShutdown {
     return {
       global: true,
       module: AgendaModule,
-      providers: [this.createAgendaProvider(options), AgendaExplorer],
+      providers: [this.createAgendaProvider(options)],
     };
   }
 
@@ -50,7 +52,7 @@ export class AgendaModule implements OnApplicationShutdown {
       global: true,
       module: AgendaModule,
       imports: options.imports || [],
-      providers: [...this.createAsyncProviders(options), AgendaExplorer],
+      providers: [...this.createAsyncProviders(options)],
     };
   }
 
