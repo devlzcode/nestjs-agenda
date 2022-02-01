@@ -39,8 +39,11 @@ export class AgendaExplorer implements OnModuleInit {
             const methodRef = instance[key];
             const processor = (...args: unknown[]) =>
               methodRef.call(instance, ...args);
-            const { name, options } =
+
+            const definitionOptions =
               this.metadataAcessor.getDefinitionOptions(methodRef);
+            if (!definitionOptions) return;
+            const { name, options } = definitionOptions;
             this.logger.log(`Registering processor "${name}"`);
             agendaService.define(name, options, processor);
 
@@ -52,7 +55,7 @@ export class AgendaExplorer implements OnModuleInit {
               `Scheduling processor "${name}" of type "${type}" ${when}`,
             );
             type === AgendaScheduleType.Every
-              ? agendaService.every(<string>when, name)
+              ? agendaService.every(when, name)
               : agendaService.schedule(when, name, {});
           },
         );

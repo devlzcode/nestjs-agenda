@@ -8,5 +8,5 @@ export type AgendaDefinitionOptions = {
 
 export type AgendaScheduleOptions = {
   type: AgendaScheduleType;
-  when: string | Date;
+  when: string;
 };
