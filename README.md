@@ -55,11 +55,17 @@ export class AppService {
 ```ts
 ...
 import { AgendaModule } from "@agent-ly/nestjs-agenda";
+import { AppProcessor } from "./app.processor";
 
 @Module({
-  imports: [AgendaModule.forRoot({
-    db: { address: ... }
-  })]
+  imports: [
+    AgendaModule.forRoot({
+      db: { 
+        address: ... // Enter MongoDB URI Connection
+      }
+    })
+  ],
+  providers: [AppProcessor]
 })
 export class AppModule {}
 ```
