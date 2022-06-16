@@ -14,6 +14,11 @@ yarn add @agent-ly/nestjs-agenda agenda
 `app.processor.ts`
 ```ts
 import { Processor, Define, Every, Schedule } from "@agent-ly/nestjs-agenda";
+import { Job } from "agenda";
+
+interface ISayYourName {
+  name: string;
+}
 
 @Processor()
 export class AppProcessor {
@@ -30,8 +35,8 @@ export class AppProcessor {
   }
 
   @Define('Say your name')
-  sayYourName(job: any) {
-    console.log(`Your name is ${job.data.name}`)
+  sayYourName(job: Job<ISayYourName>) {
+    console.log(`Your name is ${job.attrs.data.name}`);
   }
 }
 ```
@@ -55,11 +60,17 @@ export class AppService {
 ```ts
 ...
 import { AgendaModule } from "@agent-ly/nestjs-agenda";
+import { AppProcessor } from "./app.processor";
 
 @Module({
-  imports: [AgendaModule.forRoot({
-    db: { address: ... }
-  })]
+  imports: [
+    AgendaModule.forRoot({
+      db: { 
+        address: ... // Enter MongoDB URI Connection
+      }
+    })
+  ],
+  providers: [AppProcessor]
 })
 export class AppModule {}
 ```
