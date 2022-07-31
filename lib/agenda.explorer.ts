@@ -1,19 +1,19 @@
-import { OnModuleInit, Logger, Injectable } from '@nestjs/common';
-import { DiscoveryService, ModuleRef, MetadataScanner } from '@nestjs/core';
-import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
-import { AgendaService } from './agenda.service';
-import { AgendaMetadataAccessor } from './agenda-metadata.acessor';
-import { AgendaScheduleType } from './enums';
+import { InstanceWrapper } from "@nestjs/core/injector/instance-wrapper";
+import { DiscoveryService, ModuleRef, MetadataScanner } from "@nestjs/core";
+import { OnModuleInit, Logger, Injectable } from "@nestjs/common";
+import { AgendaService } from "./agenda.service";
+import { AgendaMetadataAccessor } from "./agenda-metadata.acessor";
+import { AgendaScheduleType } from "./enums";
 
 @Injectable()
 export class AgendaExplorer implements OnModuleInit {
-  private readonly logger = new Logger('AgendaExplorer');
+  private readonly logger = new Logger(AgendaExplorer.name);
 
   constructor(
     private readonly moduleRef: ModuleRef,
     private readonly discoveryService: DiscoveryService,
     private readonly metadataAcessor: AgendaMetadataAccessor,
-    private readonly metadataScanner: MetadataScanner,
+    private readonly metadataScanner: MetadataScanner
   ) {}
 
   onModuleInit() {
@@ -39,8 +39,11 @@ export class AgendaExplorer implements OnModuleInit {
             const methodRef = instance[key];
             const processor = (...args: unknown[]) =>
               methodRef.call(instance, ...args);
-            const { name, options } =
+
+            const definitionOpts =
               this.metadataAcessor.getDefinitionOptions(methodRef);
+            if (!definitionOpts) return;
+            const { name, options } = definitionOpts;
             this.logger.log(`Registering processor "${name}"`);
             agendaService.define(name, options, processor);
 
@@ -49,12 +52,13 @@ export class AgendaExplorer implements OnModuleInit {
             if (!scheduleOptions) return;
             const { when, type } = scheduleOptions;
             this.logger.log(
-              `Scheduling processor "${name}" of type "${type}" ${when}`,
+              `Scheduling processor "${name}" of type "${type}" ${when}`
             );
-            type === AgendaScheduleType.Every
-              ? agendaService.every(<string>when, name)
-              : agendaService.schedule(when, name, {});
-          },
+
+            if (type === AgendaScheduleType.Every)
+              agendaService.every(<string>when, name);
+            else agendaService.schedule(when, name, {});
+          }
         );
       });
   }
