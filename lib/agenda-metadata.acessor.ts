@@ -1,11 +1,22 @@
-import { Injectable } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { AgendaDefinitionOptions, AgendaScheduleOptions } from './agenda.types';
+import { Injectable } from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
+import type { DefineOptions } from "agenda";
+import { AgendaScheduleType } from "./enums";
 import {
   AGENDA_MODULE_DEFINITION,
   AGENDA_MODULE_PROCESSOR,
   AGENDA_MODULE_SCHEDULE,
-} from './agenda.constants';
+} from "./agenda.constants";
+
+interface AgendaDefinitionOptions {
+  name: string;
+  options: DefineOptions;
+}
+
+interface AgendaScheduleOptions {
+  type: AgendaScheduleType;
+  when: string | Date;
+}
 
 @Injectable()
 export class AgendaMetadataAccessor {
@@ -21,14 +32,14 @@ export class AgendaMetadataAccessor {
   getDefinitionOptions(target: Function) {
     return this.reflector.get<AgendaDefinitionOptions>(
       AGENDA_MODULE_DEFINITION,
-      target,
+      target
     );
   }
 
   getScheduleOptions(target: Function) {
     return this.reflector.get<AgendaScheduleOptions>(
       AGENDA_MODULE_SCHEDULE,
-      target,
+      target
     );
   }
 }

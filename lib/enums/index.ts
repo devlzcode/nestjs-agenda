@@ -1,1 +1,1 @@
-export * from './schedule-type.enum';
+export * from "./agenda-schedule-type.enum";
